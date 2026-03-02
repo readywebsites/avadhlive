@@ -30443,19 +30443,17 @@ var bS = yS,
           children: [
             (0, G.jsx)(`span`, {
               className: CS.word,
-              children: e
-                .split(``)
-                .map((e, r) =>
-                  (0, G.jsx)(
-                    `span`,
-                    {
-                      className: CS.char,
-                      style: { animationDelay: `${t + n++ * 0.05}s` },
-                      children: e,
-                    },
-                    r,
-                  ),
+              children: e.split(``).map((e, r) =>
+                (0, G.jsx)(
+                  `span`,
+                  {
+                    className: CS.char,
+                    style: { animationDelay: `${t + n++ * 0.05}s` },
+                    children: e,
+                  },
+                  r,
                 ),
+              ),
             }),
             i < r.length - 1 && ` `,
           ],
@@ -36632,7 +36630,7 @@ var bE = ({ id: e, projects: t = [] }) => {
                     style: {
                       width: `100%`,
                       height: `100%`,
-                      backgroundImage: `url("../../src/static/images/scroll-images/04-enviromental-bg.webp")`,
+                      backgroundImage: `url("../../src/assets/images/scroll-images/04-enviromental-bg.webp")`,
                       backgroundSize: `cover`,
                       backgroundPosition: `center`,
                     },
@@ -37621,66 +37619,64 @@ var PE = () =>
                           style: { textAlign: `center` },
                           children: `No jobs match your search criteria.`,
                         })
-                      : n
-                          .slice(0, c)
-                          .map((e) =>
-                            (0, G.jsxs)(
-                              `div`,
-                              {
-                                className: `${$.jobCard} ${o === e.id ? $.expanded : ``}`,
-                                children: [
-                                  (0, G.jsxs)(`div`, {
-                                    className: $.jobHeader,
-                                    onClick: () => x(e.id),
-                                    children: [
-                                      (0, G.jsxs)(`div`, {
-                                        className: $.jobTitle,
-                                        children: [
-                                          (0, G.jsx)(`h2`, {
-                                            children: e.title,
-                                          }),
-                                          (0, G.jsxs)(`div`, {
-                                            className: $.jobMeta,
-                                            children: [
-                                              (0, G.jsxs)(`span`, {
-                                                children: [`📍 `, e.location],
-                                              }),
-                                              (0, G.jsxs)(`span`, {
-                                                children: [`💼 `, e.experience],
-                                              }),
-                                              (0, G.jsxs)(`span`, {
-                                                children: [`🏢 `, e.department],
-                                              }),
-                                            ],
-                                          }),
-                                        ],
-                                      }),
-                                      (0, G.jsx)(`div`, {
-                                        className: $.expandIcon,
-                                        children: (0, G.jsx)(`i`, {
-                                          className: `fas fa-chevron-down`,
-                                        }),
-                                      }),
-                                    ],
-                                  }),
-                                  o === e.id &&
+                      : n.slice(0, c).map((e) =>
+                          (0, G.jsxs)(
+                            `div`,
+                            {
+                              className: `${$.jobCard} ${o === e.id ? $.expanded : ``}`,
+                              children: [
+                                (0, G.jsxs)(`div`, {
+                                  className: $.jobHeader,
+                                  onClick: () => x(e.id),
+                                  children: [
                                     (0, G.jsxs)(`div`, {
-                                      className: $.jobBody,
+                                      className: $.jobTitle,
                                       children: [
-                                        (0, G.jsx)(`div`, {
-                                          className: $.description,
-                                          dangerouslySetInnerHTML: {
-                                            __html: e.description,
-                                          },
+                                        (0, G.jsx)(`h2`, {
+                                          children: e.title,
                                         }),
-                                        (0, G.jsx)(IE, { jobId: e.id }),
+                                        (0, G.jsxs)(`div`, {
+                                          className: $.jobMeta,
+                                          children: [
+                                            (0, G.jsxs)(`span`, {
+                                              children: [`📍 `, e.location],
+                                            }),
+                                            (0, G.jsxs)(`span`, {
+                                              children: [`💼 `, e.experience],
+                                            }),
+                                            (0, G.jsxs)(`span`, {
+                                              children: [`🏢 `, e.department],
+                                            }),
+                                          ],
+                                        }),
                                       ],
                                     }),
-                                ],
-                              },
-                              e.id,
-                            ),
+                                    (0, G.jsx)(`div`, {
+                                      className: $.expandIcon,
+                                      children: (0, G.jsx)(`i`, {
+                                        className: `fas fa-chevron-down`,
+                                      }),
+                                    }),
+                                  ],
+                                }),
+                                o === e.id &&
+                                  (0, G.jsxs)(`div`, {
+                                    className: $.jobBody,
+                                    children: [
+                                      (0, G.jsx)(`div`, {
+                                        className: $.description,
+                                        dangerouslySetInnerHTML: {
+                                          __html: e.description,
+                                        },
+                                      }),
+                                      (0, G.jsx)(IE, { jobId: e.id }),
+                                    ],
+                                  }),
+                              ],
+                            },
+                            e.id,
                           ),
+                        ),
                 !i &&
                   c < n.length &&
                   (0, G.jsx)(`div`, {
