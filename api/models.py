@@ -50,6 +50,7 @@ class Project(models.Model):
     category = models.CharField(max_length=20, choices=Category.choices, default=Category.RESIDENTIAL)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ONGOING)
     badge_text = models.CharField(max_length=50, blank=True, null=True, help_text="Optional text for a custom badge, e.g., 'New Launch', 'Premium', 'Sold Out'.")
+    show_badge = models.BooleanField(default=True, help_text="Uncheck to hide the badge.")
     badge_bg_color = models.CharField(max_length=7, default='#eab308', help_text="Hex color code for the badge background.")
     badge_text_color = models.CharField(max_length=7, default='#000000', help_text="Hex color code for the badge text.")
     is_completed = models.BooleanField(

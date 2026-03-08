@@ -32,8 +32,8 @@ class ProjectAdminForm(forms.ModelForm):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
-    list_display = ('title', 'thumbnail_preview', 'category', 'status', 'city', 'location', 'area', 'project_type', 'bhk', 'is_completed', 'nav_order', 'show_in_nav')
-    list_filter = ('category', 'status', 'show_in_nav', 'is_completed')
+    list_display = ('title', 'thumbnail_preview', 'category', 'status', 'city', 'location', 'area', 'project_type', 'bhk', 'is_completed', 'show_badge', 'nav_order', 'show_in_nav')
+    list_filter = ('category', 'status', 'show_in_nav', 'is_completed', 'show_badge')
     search_fields = ('title', 'city', 'location')
     prepopulated_fields = {'slug': ('title',)}
     inlines = [ProjectImageInline]
@@ -45,7 +45,7 @@ class ProjectAdmin(admin.ModelAdmin):
     }
 
     # Add it to list_editable to toggle it directly from the list view!
-    list_editable = ('is_completed',)
+    list_editable = ('is_completed', 'show_badge')
 
     def thumbnail_preview(self, obj):
         if obj.main_image:

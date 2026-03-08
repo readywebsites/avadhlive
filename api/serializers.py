@@ -117,10 +117,11 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_badge(self, obj):
         """
-        Provides a consistent badge text, preferring a custom badge
-        and falling back to the project status.
+        Provides a consistent badge text.
         """
-        return obj.badge_text or obj.get_status_display()
+        if not obj.show_badge:
+            return None
+        return obj.badge_text
 
     def get_amenities(self, obj):
         """
@@ -157,7 +158,19 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_video_url(self, obj):
         """Processes the raw video URL to return a ready-to-embed URL."""
-        return get_embed_url(getattr(obj, 'video_url', None))
+        url = get_embed_url(getattr(obj, 'video_url', None))
+
+        # Automatically append origin for YouTube videos to fix embedding restrictions
+        if url and 'youtube.com' in url:
+            request = self.context.get('request')
+            if request:
+                # Try to get origin from query params or HTTP header
+                origin = request.query_params.get('origin') or request.META.get('HTTP_ORIGIN')
+                
+                if origin:
+                    separator = "&" if "?" in url else "?"
+                    return f"{url}{separator}origin={origin}"
+        return url
 
     def get_map_url(self, obj):
         """Processes the raw map iframe embed code to return just the src URL."""
@@ -188,6 +201,8 @@ class ProjectListSerializer(serializers.ModelSerializer):
         fields = ['id', 'slug', 'title', 'location', 'city', 'area', 'project_type', 'category', 'status', 'badge', 'tagline', 'main_image', 'bhk']
 
     def get_badge(self, obj):
+        if not obj.show_badge:
+            return None
         return obj.badge_text or obj.get_status_display()
 
 class ProjectMiniSerializer(serializers.ModelSerializer):
