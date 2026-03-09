@@ -203,7 +203,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     def get_badge(self, obj):
         if not obj.show_badge:
             return None
-        return obj.badge_text or obj.get_status_display()
+        return obj.badge_text
 
 class ProjectMiniSerializer(serializers.ModelSerializer):
     """Minimal serializer for navigation menus."""

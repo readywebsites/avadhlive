@@ -153,6 +153,12 @@ CORS_ALLOWED_ORIGINS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Email Configuration
+CONTACT_EMAIL = "info@avadh.biz499.com"  # The destination email for contact form inquiries
+DEFAULT_FROM_EMAIL = "noreply@avadh.biz499.com"  # The sender address
+# For development, prints emails to the terminal. Change to SMTP backend for production.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 CKEDITOR_5_CONFIGS = {
     'default': {
         'toolbar': ['heading', '|', 'bold', 'italic', 'link',

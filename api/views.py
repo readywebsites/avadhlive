@@ -1,5 +1,7 @@
 import re
-from rest_framework import viewsets, filters
+import logging
+from rest_framework import viewsets, filters, status
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
@@ -7,12 +9,16 @@ from rest_framework.response import Response
 from django.http import FileResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Project, Enquiry, JobOpening, JobApplication, Insight
 from .serializers import ProjectSerializer, ProjectListSerializer, EnquirySerializer, ProjectMiniSerializer, JobOpeningSerializer, JobApplicationSerializer, InsightSerializer
 from .filters import ProjectFilter # <-- Import the new filter
 from collections import defaultdict
 from django.shortcuts import render
+
+logger = logging.getLogger(__name__)
 
 def frontend(request):
     return render(request, "index.html")
@@ -154,6 +160,106 @@ class NavigationAPIView(APIView):
 class EnquiryViewSet(viewsets.ModelViewSet):
     queryset = Enquiry.objects.all()
     serializer_class = EnquirySerializer
+
+class BookVisitAPIView(APIView):
+    """
+    Handles 'Book a Visit' form submissions from the frontend.
+    This endpoint is public and exempt from CSRF checks.
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = [] # Disable session auth to bypass CSRF check
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        
+        # Format the message to include visit details
+        visit_info = (
+            f"Visit Request\n"
+            f"Date: {data.get('date')}\n"
+            f"Time: {data.get('time')}\n"
+            f"Project Type: {data.get('projectType')}\n"
+            f"Project: {data.get('project')}\n"
+            f"Message: {data.get('message', '')}"
+        )
+
+        # Map to Enquiry model fields
+        enquiry_data = {
+            'name': data.get('name'),
+            'email': data.get('email'),
+            'phone': data.get('phone'),
+            'project_of_interest': data.get('project', ''),
+            'message': visit_info
+        }
+
+        serializer = EnquirySerializer(data=enquiry_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Visit scheduled successfully"}, status=201)
+        return Response(serializer.errors, status=400)
+
+class ContactAPIView(APIView):
+    """
+    API endpoint to handle 'Get In Touch' form submissions.
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            
+            # Extract fields
+            name = data.get('name')
+            phone = data.get('phone')
+            email = data.get('email')
+            project = data.get('project')
+            subject = data.get('subject')
+            message = data.get('message')
+
+            # Combine subject and message for storage and email
+            full_message = (
+                f"Subject: {subject}\n"
+                f"Project Interested In: {project or 'Not specified'}\n\n"
+                f"Message:\n{message}"
+            )
+
+            # Map to Enquiry model fields and save to database
+            enquiry_data = {
+                'name': name,
+                'email': email,
+                'phone': phone,
+                'project_of_interest': project,
+                'message': full_message
+            }
+
+            serializer = EnquirySerializer(data=enquiry_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            # Also send the email notification
+            email_subject = f"New Contact Inquiry: {subject} - {name}"
+            email_body = (
+                f"Name: {name}\n"
+                f"Phone: {phone}\n"
+                f"Email: {email}\n"
+                f"{'-'*20}\n"
+                f"{full_message}"
+            )
+
+            # Send email
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[getattr(settings, 'CONTACT_EMAIL', settings.DEFAULT_FROM_EMAIL)],
+                fail_silently=False,
+            )
+
+            return Response({"message": "Inquiry received successfully"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Contact form error: {str(e)}")
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ProjectFilterMetadataView(APIView):
     """
