@@ -28,6 +28,7 @@ class Project(models.Model):
     class Category(models.TextChoices):
         RESIDENTIAL = 'RESIDENTIAL', 'Residential'
         COMMERCIAL = 'COMMERCIAL', 'Commercial'
+        INDUSTRIAL = 'INDUSTRIAL', 'Industrial'
         CLUB = 'CLUB', 'Lifestyle Club'
 
     class Status(models.TextChoices):
@@ -42,6 +43,8 @@ class Project(models.Model):
     area = models.CharField(max_length=100, blank=True, null=True, help_text="Specific neighborhood, e.g., 'Vesu', 'Dumas', 'Tukvada'")
     project_type = models.CharField(max_length=100, blank=True, null=True, help_text="Type of property, e.g., 'Apartment', 'Villa', 'Office', 'Showroom'")
     bhk = models.CharField(max_length=100, blank=True, null=True, help_text="BHK options for Residential, e.g., '2 BHK, 3 BHK'. Use commas to separate.")
+    area_sqft_min = models.FloatField(blank=True, null=True, help_text="Minimum square footage for Commercial projects.")
+    area_sqft_max = models.FloatField(blank=True, null=True, help_text="Maximum square footage for Commercial projects. Use same as min if single value.")
     tagline = models.CharField(max_length=100, blank=True, null=True, help_text="Main highlight for the card (e.g., '3 & 4 BHK Luxury'). Max 100 chars.")
     address = models.CharField(max_length=255, help_text="Full address for display and maps.", default="")
     description = CKEditor5Field('Description', config_name='extends', help_text="Detailed project description for the showcase page.")

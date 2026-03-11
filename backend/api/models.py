@@ -21,6 +21,7 @@ class Project(models.Model):
         RESIDENTIAL = 'RESIDENTIAL', 'Residential'
         COMMERCIAL = 'COMMERCIAL', 'Commercial'
         CLUB = 'CLUB', 'Lifestyle Club'
+        INDUSTRIAL = 'INDUSTRIAL', 'Industrial'
 
     class Status(models.TextChoices):
         ONGOING = 'ONGOING', 'On-going'

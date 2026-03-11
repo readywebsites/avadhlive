@@ -1,3 +1,4 @@
+import re
 from django.contrib import admin
 from django.db import models
 from django import forms
@@ -29,6 +30,18 @@ class ProjectAdminForm(forms.ModelForm):
             raise forms.ValidationError("Highlights must be a valid JSON object (dictionary) or array (list).")
         return highlights
 
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get('category')
+        
+        if category == Project.Category.COMMERCIAL:
+            min_sqft = cleaned_data.get('area_sqft_min')
+            max_sqft = cleaned_data.get('area_sqft_max')
+            if min_sqft and max_sqft and min_sqft > max_sqft:
+                raise forms.ValidationError(
+                    {'area_sqft_max': 'Max Sq. Ft. must be greater than or equal to Min Sq. Ft.'})
+        return cleaned_data
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
@@ -46,6 +59,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
     # Add it to list_editable to toggle it directly from the list view!
     list_editable = ('is_completed', 'show_badge')
+
+    class Media:
+        js = ('admin/js/project_admin.js',)
 
     def thumbnail_preview(self, obj):
         if obj.main_image:

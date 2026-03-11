@@ -67,7 +67,7 @@ class NavigationAPIView(APIView):
     def get(self, request, *args, **kwargs):
         # 1. Fetch all relevant projects in a single, efficient query.
         projects = Project.objects.filter(
-            category__in=[Project.Category.RESIDENTIAL, Project.Category.COMMERCIAL, Project.Category.CLUB],
+            category__in=[Project.Category.RESIDENTIAL, Project.Category.COMMERCIAL, Project.Category.INDUSTRIAL, Project.Category.CLUB],
             show_in_nav=True
         ).order_by('nav_order', 'title')
 
@@ -85,8 +85,12 @@ class NavigationAPIView(APIView):
         com_ongoing_data = ProjectMiniSerializer(grouped_projects.get(Project.Category.COMMERCIAL, {}).get(Project.Status.ONGOING, []), many=True, context=serializer_context).data
         com_completed_data = ProjectMiniSerializer(grouped_projects.get(Project.Category.COMMERCIAL, {}).get(Project.Status.COMPLETED, []), many=True, context=serializer_context).data
 
-        # For clubs, we can combine all statuses into one list.
-        # Flatten all statuses for CLUB category to include OPERATIONAL, UPCOMING, etc.
+        # For industrial, combine all statuses into one list.
+        industrial_projects_map = grouped_projects.get(Project.Category.INDUSTRIAL, {})
+        industrial_projects_list = [p for sublist in industrial_projects_map.values() for p in sublist]
+        industrial_data = ProjectMiniSerializer(industrial_projects_list, many=True, context=serializer_context).data
+
+        # For clubs, combine all statuses into one list.
         club_projects_map = grouped_projects.get(Project.Category.CLUB, {})
         club_projects_list = [p for sublist in club_projects_map.values() for p in sublist]
         club_data = ProjectMiniSerializer(club_projects_list, many=True, context=serializer_context).data
@@ -134,8 +138,21 @@ class NavigationAPIView(APIView):
                 ]
             },
             {
-                'id': 'club',
+                'id': 'industrial',
                 'chapter': 5,
+                'label': 'Industrial',
+                'submenu': [
+                    {
+                        'id': 'industrial-projects-section',
+                        'title': 'Industrial Projects',
+                        'projects': industrial_data,
+                        'viewAll': {'label': 'View All Industrial', 'link': '/portfolio/industrial'}
+                    }
+                ]
+            },
+            {
+                'id': 'club',
+                'chapter': 6,
                 'label': 'Lifestyle Club',
                 'submenu': [{
                     'id': 'club-projects-section',
@@ -144,7 +161,7 @@ class NavigationAPIView(APIView):
                     'viewAll': {'label': 'View All', 'link': '/portfolio/club'}
                 }]
             },
-            {'id': 'BLOG', 'chapter': 7, 'label': 'BLOG'},
+            {'id': 'BLOG', 'chapter': 8, 'label': 'BLOG'},
             # The 'More' section can also be made dynamic with another model if needed.
             {
                 'id': 'more', 'chapter': None, 'label': 'More', 'submenu': [
@@ -288,17 +305,33 @@ class ProjectFilterMetadataView(APIView):
                     type_set.add(clean_type)
         types = sorted(list(type_set))
 
-        # 4. Extract Unique BHK Options
-        # Since a project might have "2 BHK, 3 BHK", we split and collect unique values
-        bhk_raw = queryset.values_list('bhk', flat=True).exclude(bhk__isnull=True).distinct()
-        bhk_set = set()
-        for s in bhk_raw:
-            # Split by common delimiters like '&' or ','
-            parts = re.split(r'[&,]', str(s))
-            for p in parts:
-                clean_val = p.strip()
-                if "BHK" in clean_val.upper():
-                    bhk_set.add(clean_val)
+        # 4. Extract Unique BHK/SQFT Options based on category
+        bhk_options = []
+        if category.lower() == 'residential':
+            bhk_raw = queryset.values_list('bhk', flat=True).exclude(bhk__isnull=True).distinct()
+            bhk_set = set()
+            for s in bhk_raw:
+                for p in re.split(r'[&,]', str(s)):
+                    clean_val = p.strip()
+                    if clean_val and "BHK" in clean_val.upper():
+                        bhk_set.add(clean_val)
+            bhk_options = sorted(list(bhk_set))
+        elif category.lower() == 'commercial':
+            # For commercial, create Sq.Ft. ranges
+            # Get all non-null min/max values from the new numeric fields
+            all_sqft_values = list(queryset.values_list('area_sqft_min', 'area_sqft_max'))
+            sqft_values = [v for pair in all_sqft_values for v in pair if v is not None]
+
+            if sqft_values:
+                ranges = [(0, 500), (501, 1000), (1001, 2000), (2001, 5000), (5001, float('inf'))]
+                range_labels = {
+                    (0, 500): "0-500 Sq.Ft.", (501, 1000): "501-1000 Sq.Ft.",
+                    (1001, 2000): "1001-2000 Sq.Ft.", (2001, 5000): "2001-5000 Sq.Ft.",
+                    (5001, float('inf')): "5001+ Sq.Ft."
+                }
+                active_ranges = {range_labels[r] for val in sqft_values for r in ranges if r[0] <= val <= r[1]}
+                sort_map = {label: r[0] for r, label in range_labels.items()}
+                bhk_options = sorted(list(active_ranges), key=lambda x: sort_map.get(x, 0))
         
         # 5. Build Hierarchical Area Mapping (City -> [Areas])
         area_mapping = {}
@@ -319,7 +352,7 @@ class ProjectFilterMetadataView(APIView):
             "filters": {
                 "city": cities,
                 "type": types,
-                "bhk": sorted(list(bhk_set)),
+                "bhk": bhk_options,
                 "area_map": area_mapping,
             }
         })

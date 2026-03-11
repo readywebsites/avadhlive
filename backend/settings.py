@@ -130,6 +130,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "dist"  # your development static folder
 ]
+# STATICFILES_STORAGE = "whitenoise.middleware.WhiteNoiseMiddleware"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic destination (production)

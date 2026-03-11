@@ -56,6 +56,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     highlights = serializers.JSONField(required=False)
     video_url = serializers.SerializerMethodField()
     map_url = serializers.SerializerMethodField()
+    brochure = serializers.FileField(source='brochure_pdf', read_only=True)
 
     # --- Human-Readable Choice Fields ---
     category = serializers.CharField(source='get_category_display', read_only=True)
@@ -86,6 +87,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             'amenities',
             'video_url',
             'map_url',
+            'brochure',
             'show_brochure_section',
             'show_amenities_section',
             'show_gallery_section',
