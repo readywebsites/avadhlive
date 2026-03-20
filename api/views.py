@@ -67,7 +67,7 @@ class NavigationAPIView(APIView):
     def get(self, request, *args, **kwargs):
         # 1. Fetch all relevant projects in a single, efficient query.
         projects = Project.objects.filter(
-            category__in=[Project.Category.RESIDENTIAL, Project.Category.COMMERCIAL, Project.Category.INDUSTRIAL, Project.Category.CLUB],
+            category__in=[Project.Category.RESIDENTIAL, Project.Category.COMMERCIAL, Project.Category.INDUSTRIAL, Project.Category.FARMVILLE, Project.Category.CLUB],
             show_in_nav=True
         ).order_by('nav_order', 'title')
 
@@ -89,6 +89,11 @@ class NavigationAPIView(APIView):
         industrial_projects_map = grouped_projects.get(Project.Category.INDUSTRIAL, {})
         industrial_projects_list = [p for sublist in industrial_projects_map.values() for p in sublist]
         industrial_data = ProjectMiniSerializer(industrial_projects_list, many=True, context=serializer_context).data
+
+        # For farmville, combine all statuses into one list.
+        farmville_projects_map = grouped_projects.get(Project.Category.FARMVILLE, {})
+        farmville_projects_list = [p for sublist in farmville_projects_map.values() for p in sublist]
+        farmville_data = ProjectMiniSerializer(farmville_projects_list, many=True, context=serializer_context).data
 
         # For clubs, combine all statuses into one list.
         club_projects_map = grouped_projects.get(Project.Category.CLUB, {})
@@ -151,8 +156,21 @@ class NavigationAPIView(APIView):
                 ]
             },
             {
-                'id': 'club',
+                'id': 'farmville',
                 'chapter': 6,
+                'label': 'Farmville',
+                'submenu': [
+                    {
+                        'id': 'farmville-projects-section',
+                        'title': 'Farmville Projects',
+                        'projects': farmville_data,
+                        'viewAll': {'label': 'View All Farmville', 'link': '/portfolio/farmville'}
+                    }
+                ]
+            },
+            {
+                'id': 'club',
+                'chapter': 7,
                 'label': 'Lifestyle Club',
                 'submenu': [{
                     'id': 'club-projects-section',

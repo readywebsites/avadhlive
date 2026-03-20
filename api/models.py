@@ -29,6 +29,7 @@ class Project(models.Model):
         RESIDENTIAL = 'RESIDENTIAL', 'Residential'
         COMMERCIAL = 'COMMERCIAL', 'Commercial'
         INDUSTRIAL = 'INDUSTRIAL', 'Industrial'
+        FARMVILLE = 'FARMVILLE', 'Farmville'
         CLUB = 'CLUB', 'Lifestyle Club'
 
     class Status(models.TextChoices):
