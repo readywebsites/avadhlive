@@ -9,8 +9,10 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
+migrations/
 
 # Static & Build
+staticfiles/
 
 # Environments
 .env

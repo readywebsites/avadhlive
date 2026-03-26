@@ -1,3 +1,7 @@
+import requests
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,6 +9,40 @@ from .models import Project, Enquiry
 from .serializers import ProjectSerializer, EnquirySerializer, ProjectMiniSerializer
 from collections import defaultdict
 
+
+@api_view(['POST'])
+@authentication_classes([]) # Add this to bypass session auth and CSRF checks for this public webhook
+@permission_classes([AllowAny]) # Adjust permissions later based on your auth setup
+def rasa_chat_proxy(request):
+    # 1. Get the message and user ID from the React frontend
+    user_message = request.data.get('message')
+    
+    # You can use the logged-in user's ID if available, otherwise use a session ID or default
+    user_id = request.data.get('sender', 'default_user') 
+
+    if not user_message:
+        return Response({"error": "Message text is required."}, status=400)
+
+    # 2. Rasa REST webhook URL (make sure Rasa is running on port 5005)
+    rasa_url = "http://localhost:5005/webhooks/rest/webhook"
+    
+    try:
+        # 3. Forward the message to Rasa
+        rasa_response = requests.post(rasa_url, json={
+            "sender": user_id,
+            "message": user_message
+        })
+        
+        # Rasa returns a list of dictionaries (e.g., [{"recipient_id": "default_user", "text": "Hey! How are you?"}])
+        bot_replies = rasa_response.json()
+        
+        # 4. Return the bot's replies back to React
+        return Response(bot_replies)
+        
+    except requests.exceptions.RequestException as e:
+        # Handle cases where the Rasa server is not running
+        return Response({"error": "Chatbot is currently unavailable. Please try again later."}, status=503)
+    
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
