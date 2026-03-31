@@ -1,11 +1,31 @@
+import json
+import os
 from django.db import models
 from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-import os
 from django_ckeditor_5.fields import CKEditor5Field
 from tinymce.models import HTMLField
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class ChatLog(models.Model):
+    sender_id = models.CharField(max_length=255, help_text="Unique identifier for the user/session")
+    user_message = models.TextField()
+    bot_response = models.JSONField(default=list) # Store Rasa's full JSON response
+    timestamp = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                             help_text="Optional: Link to an authenticated Django user")
+
+    def __str__(self):
+        return f"Chat from {self.sender_id} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "Chat Log Entry"
+        verbose_name_plural = "Chat Log Entries"
 
 def project_directory_path(instance, filename):
     """
