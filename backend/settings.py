@@ -88,15 +88,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       # It's best practice to use environment variables for these settings on your VPS
-       'NAME': os.environ.get('POSTGRES_DB', 'awadh_db'),
-       'USER': os.environ.get('POSTGRES_USER', 'awadh_user'),
-       'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'your_db_password'),
-       'HOST': os.environ.get('POSTGRES_HOST', 'localhost'), # Or your DB host
-       'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-   }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'avadhproject',
+        'USER': 'avadhuser',
+        'PASSWORD': 'bizpassword',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
 }
 
 
