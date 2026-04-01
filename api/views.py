@@ -69,7 +69,7 @@ class ChatbotAPIView(View):
                 ChatLog.objects.create(
                     sender_id=sender_id,
                     user_message=user_message,
-                    bot_response=json.dumps(bot_responses)
+                    bot_response=bot_responses
                 )
 
             # 5. Return response to React

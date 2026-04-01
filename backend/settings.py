@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import mimetypes
 mimetypes.add_type("text/css", ".css", True)
 mimetypes.add_type("text/javascript", ".js", True)
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,10 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w&*+619-(#^dec-0*g@+&yy*hv5yd3e%j@k9r06mdsu80&v2z9'
+# It's highly recommended to load the secret key from an environment variable
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-w&*+619-(#^dec-0*g@+&yy*hv5yd3e%j@k9r06mdsu80&v2z9')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Set DEBUG to False in production by reading from an environment variable
+# e.g., `export DJANGO_DEBUG=False` on your VPS
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ['true', '1']
 
 ALLOWED_HOSTS = ["avadh.biz499.com", "www.avadh.biz499.com",]
 
@@ -84,10 +88,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+   'default': {
+       'ENGINE': 'django.db.backends.postgresql',
+       # It's best practice to use environment variables for these settings on your VPS
+       'NAME': os.environ.get('POSTGRES_DB', 'awadh_db'),
+       'USER': os.environ.get('POSTGRES_USER', 'awadh_user'),
+       'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'your_db_password'),
+       'HOST': os.environ.get('POSTGRES_HOST', 'localhost'), # Or your DB host
+       'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+   }
 }
 
 
