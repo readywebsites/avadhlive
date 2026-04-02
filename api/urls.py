@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProjectViewSet, NavigationAPIView, EnquiryViewSet, BookVisitAPIView, ProjectFilterMetadataView, JobOpeningViewSet, JobApplicationViewSet, download_resume, InsightViewSet, ContactAPIView, ChatbotAPIView
+from .views import ProjectViewSet, NavigationAPIView, EnquiryViewSet, BookVisitAPIView, ProjectFilterMetadataView, JobOpeningViewSet, JobApplicationViewSet, download_resume, InsightViewSet, ContactAPIView
 
 router = DefaultRouter()
 router.register(r'property', ProjectViewSet)
@@ -16,5 +16,4 @@ urlpatterns = [
     path('contact/', ContactAPIView.as_view(), name='contact'),
     path('filter-metadata/', ProjectFilterMetadataView.as_view(), name='filter-metadata'),
     path('admin/download-resume/<int:pk>/', download_resume, name='download_resume'),
-    path('chat/', ChatbotAPIView.as_view(), name='chatbot_api'),
 ]

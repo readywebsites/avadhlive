@@ -1,9 +1,7 @@
 import re
 import logging
-import json
 import logging
 import os
-import requests
 from rest_framework import viewsets, filters, status
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -23,70 +21,6 @@ from collections import defaultdict
 from django.shortcuts import render
 from django.conf import settings
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views import View
-
-logger = logging.getLogger(__name__)
-
-# It's good practice to define constants or retrieve from settings
-RASA_WEBHOOK_URL = os.environ.get("RASA_WEBHOOK_URL", "http://localhost:5005/webhooks/rest/webhook")
-RASA_REQUEST_TIMEOUT = int(os.environ.get("RASA_REQUEST_TIMEOUT", 60)) # seconds
-
-@method_decorator(csrf_exempt, name='dispatch') # Only if you need to disable CSRF for this endpoint, usually not recommended for production POST
-class ChatbotAPIView(View):
-    def post(self, request, *args, **kwargs):
-        try:
-            # 1. Parse incoming message from React
-            data = json.loads(request.body)
-            user_message = data.get('message')
-            sender_id = data.get('sender_id') # Expect sender_id from frontend
-
-            if not user_message or not sender_id:
-                return JsonResponse({'error': 'Missing message or sender_id'}, status=400)
-
-            # 2. Prepare payload for Rasa
-            rasa_payload = {
-                "sender": sender_id,
-                "message": user_message
-            }
-
-            # 3. Forward to Rasa server
-            logger.info(f"Forwarding message to Rasa for sender {sender_id}: {user_message}")
-            rasa_response = requests.post(
-                RASA_WEBHOOK_URL,
-                json=rasa_payload,
-                timeout=RASA_REQUEST_TIMEOUT
-            )
-            rasa_response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
-
-            # 4. Process Rasa's response
-            bot_responses = rasa_response.json()
-
-            # Optional: Log conversation (Phase 2.3)
-            if settings.CHAT_LOGGING_ENABLED:
-                from .models import ChatLog
-                ChatLog.objects.create(
-                    sender_id=sender_id,
-                    user_message=user_message,
-                    bot_response=bot_responses
-                )
-
-            # 5. Return response to React
-            return JsonResponse({'responses': bot_responses})
-
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON in request body.")
-            return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
-        except requests.exceptions.Timeout:
-            logger.error(f"Rasa server request timed out after {RASA_REQUEST_TIMEOUT} seconds.")
-            return JsonResponse({'error': 'Chatbot is currently unavailable (timeout).'}, status=504)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error communicating with Rasa server: {e}")
-            return JsonResponse({'error': 'Chatbot is currently unavailable.'}, status=503)
-        except Exception as e:
-            logger.exception("An unexpected error occurred in ChatbotAPIView.")
-            return JsonResponse({'error': 'An internal server error occurred.'}, status=500)
 
 logger = logging.getLogger(__name__)
 
