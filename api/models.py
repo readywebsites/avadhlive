@@ -74,7 +74,7 @@ class Project(models.Model):
     show_gallery_section = models.BooleanField(default=True, help_text="Toggle to show/hide the gallery section.")
 
     # --- Media and External Links ---
-    main_image = models.ImageField(upload_to=project_directory_path, help_text="Primary image shown in project listings and cards.")
+    main_image = models.ImageField(upload_to=project_directory_path, blank=True, null=True, help_text="Primary image shown in project listings and cards.")
     brochure_pdf = models.FileField(
         upload_to=project_directory_path,
         blank=True,

@@ -39,7 +39,7 @@ def get_map_src_from_embed(embed_html):
     if not embed_html:
         return ""
     match = re.search(r'src="([^"]+)"', embed_html)
-    return match.group(1) if match else ""
+    return match.group(1) if match else embed_html.strip()
 
 
 # --- Serializers ---
