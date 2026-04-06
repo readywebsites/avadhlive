@@ -160,19 +160,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_video_url(self, obj):
         """Processes the raw video URL to return a ready-to-embed URL."""
-        url = get_embed_url(getattr(obj, 'video_url', None))
-
-        # Automatically append origin for YouTube videos to fix embedding restrictions
-        if url and 'youtube.com' in url:
-            request = self.context.get('request')
-            if request:
-                # Try to get origin from query params or HTTP header
-                origin = request.query_params.get('origin') or request.META.get('HTTP_ORIGIN')
-                
-                if origin:
-                    separator = "&" if "?" in url else "?"
-                    return f"{url}{separator}origin={origin}"
-        return url
+        return get_embed_url(getattr(obj, 'video_url', None))
 
     def get_map_url(self, obj):
         """Processes the raw map iframe embed code to return just the src URL."""
