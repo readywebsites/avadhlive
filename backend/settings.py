@@ -246,3 +246,4 @@ TINYMCE_DEFAULT_CONFIG = {
 # Increase the maximum upload size for project data (adjust as needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500 MB
+WHITENOISE_MAX_AGE = 31536000  # 1 year
