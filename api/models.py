@@ -122,39 +122,37 @@ class Project(models.Model):
 
     def make_thumbnails(self):
         """
-        Creates optimized scaled-down versions of the main image.
+        Creates optimized scaled-down WebP versions of the main image.
         Reduces by 50% for card_image, and by 80% (to 20%) for mini_image.
         """
         # Open the uploaded image
         img = Image.open(self.main_image)
-        
-        # Convert to RGB to ensure compatibility when saving as JPEG
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-            
+
+        # No need to convert to RGB, WebP handles transparency
+
         width, height = img.size
-        
+
         # 1. Generate Card Image (Reduce by 50%)
         card_size = (int(width * 0.5), int(height * 0.5))
         card_img = img.resize(card_size, Image.Resampling.LANCZOS)
-        
+
         card_io = BytesIO()
-        card_img.save(card_io, format='JPEG', quality=85)
+        card_img.save(card_io, format='WEBP', quality=80)
         card_io.seek(0)
-        
+
         # Extract filename without extension and append suffix
         base_name = os.path.splitext(os.path.basename(self.main_image.name))[0]
-        self.card_image.save(f"{base_name}_card.jpg", ContentFile(card_io.read()), save=False)
+        self.card_image.save(f"{base_name}_card.webp", ContentFile(card_io.read()), save=False)
 
         # 2. Generate Mini Image (Reduce by 80% -> resulting in 20% size)
         mini_size = (int(width * 0.2), int(height * 0.2))
         mini_img = img.resize(mini_size, Image.Resampling.LANCZOS)
-        
+
         mini_io = BytesIO()
-        mini_img.save(mini_io, format='JPEG', quality=85)
+        mini_img.save(mini_io, format='WEBP', quality=80)
         mini_io.seek(0)
-        
-        self.mini_image.save(f"{base_name}_mini.jpg", ContentFile(mini_io.read()), save=False)
+
+        self.mini_image.save(f"{base_name}_mini.webp", ContentFile(mini_io.read()), save=False)
 
     @property
     def link(self):
@@ -282,30 +280,29 @@ class Insight(models.Model):
 
     def make_thumbnails(self):
         """
-        Creates optimized scaled-down versions of the insight image.
+        Creates optimized scaled-down WebP versions of the insight image.
         """
         img = Image.open(self.image)
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-            
+        # No need to convert to RGB, WebP handles transparency
+
         width, height = img.size
-        
+
         # 1. Generate Card Image (Reduce by 50%)
         card_size = (int(width * 0.5), int(height * 0.5))
         card_img = img.resize(card_size, Image.Resampling.LANCZOS)
         card_io = BytesIO()
-        card_img.save(card_io, format='JPEG', quality=85)
+        card_img.save(card_io, format='WEBP', quality=80)
         card_io.seek(0)
         base_name = os.path.splitext(os.path.basename(self.image.name))[0]
-        self.card_image.save(f"{base_name}_card.jpg", ContentFile(card_io.read()), save=False)
+        self.card_image.save(f"{base_name}_card.webp", ContentFile(card_io.read()), save=False)
 
         # 2. Generate Mini Image (Reduce by 80%)
         mini_size = (int(width * 0.2), int(height * 0.2))
         mini_img = img.resize(mini_size, Image.Resampling.LANCZOS)
         mini_io = BytesIO()
-        mini_img.save(mini_io, format='JPEG', quality=85)
+        mini_img.save(mini_io, format='WEBP', quality=80)
         mini_io.seek(0)
-        self.mini_image.save(f"{base_name}_mini.jpg", ContentFile(mini_io.read()), save=False)
+        self.mini_image.save(f"{base_name}_mini.webp", ContentFile(mini_io.read()), save=False)
 
 # --- Signals to Auto-Delete Files on Model Deletion ---
 
