@@ -1,5 +1,8 @@
 import json
 import os
+from io import BytesIO
+from PIL import Image
+from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
@@ -8,6 +11,8 @@ from django.conf import settings
 from django_ckeditor_5.fields import CKEditor5Field
 from tinymce.models import HTMLField
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 User = get_user_model()
 
@@ -75,6 +80,8 @@ class Project(models.Model):
 
     # --- Media and External Links ---
     main_image = models.ImageField(upload_to=project_directory_path, blank=True, null=True, help_text="Primary image shown in project listings and cards.")
+    card_image = models.ImageField(upload_to=project_directory_path, blank=True, null=True, help_text="50% scaled down version for ProjectCard.")
+    mini_image = models.ImageField(upload_to=project_directory_path, blank=True, null=True, help_text="80% scaled down version for ProjectCardMini.")
     brochure_pdf = models.FileField(
         upload_to=project_directory_path,
         blank=True,
@@ -105,7 +112,49 @@ class Project(models.Model):
         # Auto-generate the slug from the title if it's not set
         if not self.slug:
             self.slug = slugify(self.title)
+            
+        # Automatically generate thumbnails if main_image is present
+        # We check if card_image is empty to avoid regenerating on every save
+        if self.main_image and not self.card_image:
+            self.make_thumbnails()
+            
         super().save(*args, **kwargs)
+
+    def make_thumbnails(self):
+        """
+        Creates optimized scaled-down versions of the main image.
+        Reduces by 50% for card_image, and by 80% (to 20%) for mini_image.
+        """
+        # Open the uploaded image
+        img = Image.open(self.main_image)
+        
+        # Convert to RGB to ensure compatibility when saving as JPEG
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        width, height = img.size
+        
+        # 1. Generate Card Image (Reduce by 50%)
+        card_size = (int(width * 0.5), int(height * 0.5))
+        card_img = img.resize(card_size, Image.Resampling.LANCZOS)
+        
+        card_io = BytesIO()
+        card_img.save(card_io, format='JPEG', quality=85)
+        card_io.seek(0)
+        
+        # Extract filename without extension and append suffix
+        base_name = os.path.splitext(os.path.basename(self.main_image.name))[0]
+        self.card_image.save(f"{base_name}_card.jpg", ContentFile(card_io.read()), save=False)
+
+        # 2. Generate Mini Image (Reduce by 80% -> resulting in 20% size)
+        mini_size = (int(width * 0.2), int(height * 0.2))
+        mini_img = img.resize(mini_size, Image.Resampling.LANCZOS)
+        
+        mini_io = BytesIO()
+        mini_img.save(mini_io, format='JPEG', quality=85)
+        mini_io.seek(0)
+        
+        self.mini_image.save(f"{base_name}_mini.jpg", ContentFile(mini_io.read()), save=False)
 
     @property
     def link(self):
@@ -198,6 +247,8 @@ class Insight(models.Model):
     
     # Content fields
     image = models.ImageField(upload_to='insights/', blank=True, null=True)
+    card_image = models.ImageField(upload_to='insights/', blank=True, null=True, help_text="50% scaled down version.")
+    mini_image = models.ImageField(upload_to='insights/', blank=True, null=True, help_text="80% scaled down version.")
     content = HTMLField(blank=True, null=True, help_text="Main content for Blogs")
     short_description = models.TextField(blank=True, help_text="Excerpt for list view")
     
@@ -222,4 +273,65 @@ class Insight(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+            
+        # Automatically generate thumbnails if image is present
+        if self.image and not self.card_image:
+            self.make_thumbnails()
+            
         super().save(*args, **kwargs)
+
+    def make_thumbnails(self):
+        """
+        Creates optimized scaled-down versions of the insight image.
+        """
+        img = Image.open(self.image)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        width, height = img.size
+        
+        # 1. Generate Card Image (Reduce by 50%)
+        card_size = (int(width * 0.5), int(height * 0.5))
+        card_img = img.resize(card_size, Image.Resampling.LANCZOS)
+        card_io = BytesIO()
+        card_img.save(card_io, format='JPEG', quality=85)
+        card_io.seek(0)
+        base_name = os.path.splitext(os.path.basename(self.image.name))[0]
+        self.card_image.save(f"{base_name}_card.jpg", ContentFile(card_io.read()), save=False)
+
+        # 2. Generate Mini Image (Reduce by 80%)
+        mini_size = (int(width * 0.2), int(height * 0.2))
+        mini_img = img.resize(mini_size, Image.Resampling.LANCZOS)
+        mini_io = BytesIO()
+        mini_img.save(mini_io, format='JPEG', quality=85)
+        mini_io.seek(0)
+        self.mini_image.save(f"{base_name}_mini.jpg", ContentFile(mini_io.read()), save=False)
+
+# --- Signals to Auto-Delete Files on Model Deletion ---
+
+@receiver(post_delete, sender=Project)
+def delete_project_files(sender, instance, **kwargs):
+    """Deletes all physical files associated with a Project when the record is deleted."""
+    if instance.main_image:
+        instance.main_image.delete(save=False)
+    if instance.card_image:
+        instance.card_image.delete(save=False)
+    if instance.mini_image:
+        instance.mini_image.delete(save=False)
+    if instance.brochure_pdf:
+        instance.brochure_pdf.delete(save=False)
+
+@receiver(post_delete, sender=ProjectImage)
+def delete_project_gallery_images(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(save=False)
+
+@receiver(post_delete, sender=Insight)
+def delete_insight_files(sender, instance, **kwargs):
+    """Deletes all physical files associated with an Insight when the record is deleted."""
+    if instance.image:
+        instance.image.delete(save=False)
+    if instance.card_image:
+        instance.card_image.delete(save=False)
+    if instance.mini_image:
+        instance.mini_image.delete(save=False)

@@ -80,6 +80,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             'badge',
             'tagline',
             'main_image',
+            'card_image',
+            'mini_image',
             'bhk',
             'is_completed',
             'gallery',
@@ -188,7 +190,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'slug', 'title', 'location', 'city', 'area', 'project_type', 'category', 'status', 'badge', 'tagline', 'main_image', 'bhk']
+        fields = ['id', 'slug', 'title', 'location', 'city', 'area', 'project_type', 'category', 'status', 'badge', 'tagline', 'main_image', 'card_image', 'mini_image', 'bhk']
 
     def get_badge(self, obj):
         if not obj.show_badge:
@@ -197,10 +199,18 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
 class ProjectMiniSerializer(serializers.ModelSerializer):
     """Minimal serializer for navigation menus."""
-    image = serializers.ImageField(source='main_image', read_only=True)
+    image = serializers.SerializerMethodField()
+    
     class Meta:
         model = Project
         fields = ['id', 'title', 'slug', 'nav_order', 'location', 'address', 'image']
+        
+    def get_image(self, obj):
+        request = self.context.get('request')
+        img = obj.mini_image if obj.mini_image else obj.main_image
+        if img:
+            return request.build_absolute_uri(img.url) if request else img.url
+        return None
 
 class EnquirySerializer(serializers.ModelSerializer):
     """Serializer for handling contact form submissions."""
