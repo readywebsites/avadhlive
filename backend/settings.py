@@ -31,7 +31,10 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-w&*+619-(#^dec
 # e.g., `export DJANGO_DEBUG=False` on your VPS
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ['true', '1']
 
-ALLOWED_HOSTS = ["avadh.biz499.com", "www.avadh.biz499.com",]
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = ["avadh.biz499.com", "www.avadh.biz499.com", "localhost", "127.0.0.1"]
 
 
 # Application definition

@@ -421,3 +421,31 @@ class InsightViewSet(viewsets.ModelViewSet):
         if category:
             queryset = queryset.filter(category=category)
         return queryset
+
+class ChatBotAPIView(APIView):
+    """
+    A simple keyword-based chatbot endpoint for the frontend.
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Bypass CSRF for public chat
+
+    def post(self, request, *args, **kwargs):
+        sender_id = request.data.get("sender_id")
+        message = request.data.get("message", "").lower()
+
+        if not message:
+            return Response({"reply": "I didn't quite catch that. Could you repeat?"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Simple Keyword Matching Logic
+        if "pricing" in message or "cost" in message or "price" in message:
+            reply = "Our pricing varies by project. Please visit the specific property page or contact us for a detailed brochure."
+        elif "location" in message or "where" in message or "address" in message:
+            reply = "We have multiple premium projects across Surat. Are you looking for Residential or Commercial properties?"
+        elif "contact" in message or "call" in message or "phone" in message:
+            reply = f"You can reach our sales team at {settings.CONTACT_EMAIL} or easily book a visit directly through our website!"
+        elif "hello" in message or "hi" in message:
+            reply = "Hello! Welcome to Avadh. How can I assist you today?"
+        else:
+            reply = "Thank you for reaching out! I'm currently a simple assistant. Please leave your contact details or visit our Contact Us page, and our team will get back to you shortly."
+
+        return Response({"reply": reply}, status=status.HTTP_200_OK)
