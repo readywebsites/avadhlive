@@ -34,7 +34,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ['true', '1']
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
 else:
-    ALLOWED_HOSTS = ["avadhprojects.com","avadh.biz499.com", "www.avadh.biz499.com", "localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = ["avadhprojects.com","avadh.biz499.com"]
 
 
 # Application definition
