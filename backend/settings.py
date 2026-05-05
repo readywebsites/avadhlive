@@ -155,6 +155,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # For standard Create React App
     "http://localhost:5173",  # For Vite (likely your case)
     "http://127.0.0.1:5173",
+    "https://avadhprojects.com",
+    "https://www.avadhprojects.com",
 ]
 
 # Media files (for project thumbnails)
