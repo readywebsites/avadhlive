@@ -34,7 +34,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ['true', '1']
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
 else:
-    ALLOWED_HOSTS = ["avadhprojects.com","avadh.biz499.com"]
+    ALLOWED_HOSTS = ["avadhprojects.com","www.avadhprojects.com"]  # Update with your actual domain(s) in production
 
 
 # Application definition
