@@ -29,12 +29,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-w&*+619-(#^dec
 # SECURITY WARNING: don't run with debug turned on in production!
 # Set DEBUG to False in production by reading from an environment variable
 # e.g., `export DJANGO_DEBUG=False` on your VPS
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ['true', '1']
+DEBUG = True
 
-if DEBUG:
-    ALLOWED_HOSTS = ["*"]
-else:
-    ALLOWED_HOSTS = ["avadhprojects.com","www.avadhprojects.com"]  # Update with your actual domain(s) in production
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
