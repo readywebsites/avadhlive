@@ -199,6 +199,34 @@ class NavigationAPIView(APIView):
 class EnquiryViewSet(viewsets.ModelViewSet):
     queryset = Enquiry.objects.all()
     serializer_class = EnquirySerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [] # Disable session auth to bypass CSRF check
+
+    def perform_create(self, serializer):
+        # 1. Save the enquiry to the database
+        enquiry = serializer.save()
+        
+        # 2. Shoot an email with the enquiry details
+        try:
+            email_subject = f"New Enquiry: {enquiry.project_of_interest or 'General'}"
+            email_body = (
+                f"A new enquiry has been submitted. Details below:\n\n"
+                f"Name: {enquiry.name}\n"
+                f"Email: {enquiry.email}\n"
+                f"Phone: {enquiry.phone}\n"
+                f"Project of Interest: {enquiry.project_of_interest or 'N/A'}\n\n"
+                f"Message/Details:\n{enquiry.message}"
+            )
+            
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[getattr(settings, 'CONTACT_EMAIL', settings.DEFAULT_FROM_EMAIL)],
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send enquiry email: {str(e)}")
 
 class BookVisitAPIView(APIView):
     """

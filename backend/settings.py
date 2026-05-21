@@ -249,3 +249,21 @@ TINYMCE_DEFAULT_CONFIG = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500 MB
 WHITENOISE_MAX_AGE = 31536000  # 1 year
+
+# Email Configuration (SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# The Gmail address you are sending the email FROM
+EMAIL_HOST_USER = 'your-email@gmail.com'  
+
+# The 16-character App Password you generated in Step 1 (NO SPACES)
+EMAIL_HOST_PASSWORD = 'ymproetkxsrudpui'  
+
+# The default email address that will show up in the "From" field
+DEFAULT_FROM_EMAIL = 'Avadh Real Estate Brochure Downloads <biz499websites@gmail.com>'
+
+# Custom setting we used in views.py to determine where the enquiries are sent TO
+CONTACT_EMAIL = 'info@avadhprojects.com' # Change this to whoever should receive the enquiry!
