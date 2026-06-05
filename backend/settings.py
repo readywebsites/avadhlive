@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-w&*+619-(#^dec
 # SECURITY WARNING: don't run with debug turned on in production!
 # Set DEBUG to False in production by reading from an environment variable
 # e.g., `export DJANGO_DEBUG=False` on your VPS
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
