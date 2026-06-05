@@ -257,7 +257,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # The Gmail address you are sending the email FROM
-EMAIL_HOST_USER = 'your-email@gmail.com'  
+EMAIL_HOST_USER = 'biz499websites@gmail.com'  
 
 # The 16-character App Password you generated in Step 1 (NO SPACES)
 EMAIL_HOST_PASSWORD = 'ymproetkxsrudpui'  
